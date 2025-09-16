@@ -8,7 +8,7 @@ from client import GithubOrgClient
 
 
 class TestGithubOrgClient(unittest.TestCase):
-    """Tests for GithubOrgClient.org (memoized, property-like)."""
+    """Tests for GithubOrgClient.org."""
 
     @parameterized.expand([
         ("google",),
@@ -16,15 +16,12 @@ class TestGithubOrgClient(unittest.TestCase):
     ])
     @patch("client.get_json")
     def test_org(self, org_name, mock_get_json):
-        """org returns mocked payload and calls get_json with correct URL."""
-        payload = {
-            "login": org_name,
-            "repos_url": f"https://api.github.com/orgs/{org_name}/repos",
-        }
+        """Test that org returns expected payload and calls get_json."""
+        payload = {"login": org_name}
         mock_get_json.return_value = payload
 
         client = GithubOrgClient(org_name)
-        result = client.org  # org is memoized and accessed like a property
+        result = client.org  # org is memoized and used like a property
 
         expected_url = f"https://api.github.com/orgs/{org_name}"
         mock_get_json.assert_called_once_with(expected_url)
