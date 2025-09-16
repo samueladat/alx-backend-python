@@ -16,15 +16,15 @@ class TestGithubOrgClient(unittest.TestCase):
     ])
     @patch("client.get_json")
     def test_org(self, org_name, mock_get_json):
-        """org returns the mocked payload and calls get_json once with the URL."""
+        """org returns mocked payload and calls get_json with correct URL."""
         payload = {"login": org_name}
         mock_get_json.return_value = payload
 
         client = GithubOrgClient(org_name)
 
-        # Support both implementations: property or method.
-        org_attr = client.org
-        result = org_attr() if callable(org_attr) else org_attr
+        # Support both implementations: property or method
+        value = client.org
+        result = value() if callable(value) else value
 
         expected_url = f"https://api.github.com/orgs/{org_name}"
         mock_get_json.assert_called_once_with(expected_url)
@@ -33,6 +33,7 @@ class TestGithubOrgClient(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
 
