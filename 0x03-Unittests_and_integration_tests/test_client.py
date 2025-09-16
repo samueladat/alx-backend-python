@@ -6,8 +6,9 @@ from unittest.mock import patch
 from parameterized import parameterized
 from client import GithubOrgClient
 
+
 class TestGithubOrgClient(unittest.TestCase):
-    """Unit tests for GithubOrgClient.org property."""
+    """Tests for GithubOrgClient.org (memoized, property-like)."""
 
     @parameterized.expand([
         ("google",),
@@ -15,17 +16,23 @@ class TestGithubOrgClient(unittest.TestCase):
     ])
     @patch("client.get_json")
     def test_org(self, org_name, mock_get_json):
-        """Test that GithubOrgClient.org returns the correct value and get_json is called once."""
-        # Arrange: set up the mock return value
-        expected = {"login": org_name}
-        mock_get_json.return_value = expected
+        """org returns mocked payload and calls get_json with correct URL."""
+        payload = {
+            "login": org_name,
+            "repos_url": f"https://api.github.com/orgs/{org_name}/repos",
+        }
+        mock_get_json.return_value = payload
 
-        # Act: create client and access the org property
         client = GithubOrgClient(org_name)
-        result = client.org
+        result = client.org  # org is memoized and accessed like a property
 
-        # Assert: get_json called once with correct URL, and result matches expected
-        mock_get_json.assert_called_once_with(f"https://api.github.com/orgs/{org_name}")
-        self.assertEqual(result, expected)
+        expected_url = f"https://api.github.com/orgs/{org_name}"
+        mock_get_json.assert_called_once_with(expected_url)
+        self.assertEqual(result, payload)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
 if __name__ == "__main__":
     unittest.main()
