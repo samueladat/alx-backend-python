@@ -1,58 +1,42 @@
 #!/usr/bin/env python3
-"""A github org client
 """
-from typing import (
-    List,
-    Dict,
-)
+Task 4: Parameterize and patch as decorators
+Unit tests for client.GithubOrgClient
+"""
 
-from utils import (
-    get_json,
-    access_nested_map,
-    memoize,
-)
+import unittest
+from unittest.mock import patch
+from parameterized import parameterized
+
+from client import GithubOrgClient
 
 
-class GithubOrgClient:
-    """A Githib org client
-    """
-    ORG_URL = "https://api.github.com/orgs/{org}"
+class TestGithubOrgClient(unittest.TestCase):
+    """Unit tests for GithubOrgClient.org"""
 
-    def __init__(self, org_name: str) -> None:
-        """Init method of GithubOrgClient"""
-        self._org_name = org_name
+    @parameterized.expand([
+        ("google",),
+        ("abc",),
+    ])
+    @patch("client.get_json")
+    def test_org(self, org_name, mock_get_json):
+        """
+        Verify that:
+        - GithubOrgClient.org returns the value from get_json
+        - get_json is called exactly once with the expected URL
+        - No external HTTP call is made (thanks to patch)
+        """
+        expected_payload = {"org": org_name}
+        mock_get_json.return_value = expected_payload
 
-    @memoize
-    def org(self) -> Dict:
-        """Memoize org"""
-        return get_json(self.ORG_URL.format(org=self._org_name))
+        client = GithubOrgClient(org_name)
+        # org is a @memoize-wrapped property, so call without parentheses
+        self.assertEqual(client.org, expected_payload)
 
-    @property
-    def _public_repos_url(self) -> str:
-        """Public repos URL"""
-        return self.org["repos_url"]
+        mock_get_json.assert_called_once_with(
+            GithubOrgClient.ORG_URL.format(org=org_name)
+        )
 
-    @memoize
-    def repos_payload(self) -> Dict:
-        """Memoize repos payload"""
-        return get_json(self._public_repos_url)
 
-    def public_repos(self, license: str = None) -> List[str]:
-        """Public repos"""
-        json_payload = self.repos_payload
-        public_repos = [
-            repo["name"] for repo in json_payload
-            if license is None or self.has_license(repo, license)
-        ]
-
-        return public_repos
-
-    @staticmethod
-    def has_license(repo: Dict[str, Dict], license_key: str) -> bool:
-        """Static: has_license"""
-        assert license_key is not None, "license_key cannot be None"
-        try:
-            has_license = access_nested_map(repo, ("license", "key")) == license_key
-        except KeyError:
-            return False
-        return has_license
+if __name__ == "__main__":
+    unittest.main()
