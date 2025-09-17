@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""Unit tests for client.GithubOrgClient.org."""
+"""
+Task 4: Parameterize and patch as decorators
+Tests for client.GithubOrgClient
+"""
 
 import unittest
 from unittest.mock import patch
 from parameterized import parameterized
+
 from client import GithubOrgClient
 
 
 class TestGithubOrgClient(unittest.TestCase):
-    """Tests for GithubOrgClient.org."""
+    """Unit tests for GithubOrgClient"""
 
     @parameterized.expand([
         ("google",),
@@ -16,16 +20,19 @@ class TestGithubOrgClient(unittest.TestCase):
     ])
     @patch("client.get_json")
     def test_org(self, org_name, mock_get_json):
-        """Test that org returns expected payload and calls get_json."""
-        payload = {"login": org_name}
-        mock_get_json.return_value = payload
+        """
+        Ensure GithubOrgClient.org returns the payload from get_json
+        and that get_json is called exactly once with the expected URL.
+        """
+        expected_payload = {"org": org_name}
+        mock_get_json.return_value = expected_payload
 
         client = GithubOrgClient(org_name)
-        result = client.org  # org is memoized and used like a property
+        self.assertEqual(client.org, expected_payload)
 
-        expected_url = f"https://api.github.com/orgs/{org_name}"
-        mock_get_json.assert_called_once_with(expected_url)
-        self.assertEqual(result, payload)
+        mock_get_json.assert_called_once_with(
+            GithubOrgClient.ORG_URL.format(org=org_name)
+        )
 
 
 if __name__ == "__main__":
