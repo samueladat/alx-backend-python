@@ -14,12 +14,12 @@ from client import GithubOrgClient
 class TestGithubOrgClient(unittest.TestCase):
     """Unit tests for GithubOrgClient"""
 
+    @patch("client.get_json")
     @parameterized.expand([
         ("google",),
         ("abc",),
     ])
-    @patch("client.get_json")
-    def test_org(self, org_name, mock_get_json):
+    def test_org(self, mock_get_json, org_name):
         """
         Ensure GithubOrgClient.org returns the payload from get_json
         and that get_json is called exactly once with the expected URL.
@@ -37,3 +37,4 @@ class TestGithubOrgClient(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
